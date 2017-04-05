@@ -121,7 +121,7 @@ Options:
                          default: opinsights.azure.com
                          ex: opinsights.azure.us (for FairFax)
   -p conf, --proxy conf  Use <conf> as the proxy configuration.
-                         ex: -p [protocol://][user:password@]proxyhost[:port]
+                         ex: -p [protocol://]user:password@proxyhost:port
   -a id, --azure-resource id Use Azure Resource ID <id>.
 
   -? | --help            shows this usage text.
@@ -132,18 +132,21 @@ Communication between the agent and OMS services can use an HTTP or HTTPS proxy 
 
 **Proxy Configuration**
 The proxy configuration value has the following syntax:
-[protocol://][user:password@]proxyhost[:port]
+[protocol://]user:password@proxyhost:port
 
 Property|Description
 -|-
 Protocol|http or https
-user|Optional username for proxy authentication
-password|Optional password for proxy authentication
+user|Username for proxy authentication; can be placeholder text
+password|Password for proxy authentication; can be placeholder text
 proxyhost|Address or FQDN of the proxy server
-port|Optional port number for the proxy server
+port|Port number for the proxy server
 
-For example:
+Examples:
+```
 http://user01:password@proxy01.contoso.com:8080
+http://uplaceholder:pplaceholder@proxy01.contoso.com:8080
+```
 
 The proxy server can be specified during installation or directly in a file (at any point). 
 
