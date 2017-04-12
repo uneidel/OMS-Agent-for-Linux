@@ -85,7 +85,7 @@ MONITOR_AGENT_PORT=$DEFAULT_MONITOR_AGENT_PORT
 
 # SCOM variables
 SCX_SSL_CONFIG=/opt/microsoft/scx/bin/tools/scxsslconfig
-
+OMI_CONF_FILE=/etc/opt/omi/conf/omiserver.conf
 usage()
 {
     local basename=`basename $0`
@@ -353,6 +353,15 @@ onboard_scom()
     #Always register SCOM as secondary Workspace
     echo "SCOM Workspace" > $CONF_DIR/.multihoming_marker
     configure_logrotate
+
+    #Open port 1270 if not already open
+    IS_PORT_OPEN=`cat $OMI_CONF_FILE | grep httpsport | grep 1270 | wc -l`
+    if [ $IS_PORT_OPEN -ne 1 ]; then
+        /opt/omi/bin/omiconfigeditor httpsport -a 1270 < /etc/opt/omi/conf/omiserver.conf > /etc/opt/omi/conf/omiserver.conf_temp
+        mv /etc/opt/omi/conf/omiserver.conf_temp /etc/opt/omi/conf/omiserver.conf
+        # Restart OMI
+        /opt/omi/bin/service_control restart
+    fi
 }
 
 onboard_lad()
@@ -608,6 +617,12 @@ remove_all()
     # Remove LAD workspace
     WORKSPACE_ID="LAD"
     remove_workspace
+
+    # remove scom workspace
+    if [ `ls -1 $ETC_DIR | grep scom | wc -l` -eq 1 ]; then
+        WORKSPACE_ID="scom"
+        remove_workspace
+    fi
 }
 
 show_workspace_status()
@@ -665,6 +680,11 @@ list_workspaces()
                 show_workspace_status $ETC_DIR/${ws_id}/conf ${ws_id} 0
             fi
         done
+        # check scom workspace
+        if [ `ls -1 $ETC_DIR | grep scom | wc -l` -eq 1 ]; then
+            found_ws=1
+            show_workspace_status $ETC_DIR/scom/conf scom 0
+        fi
     elif [ -d ${ws_conf_dir} ]; then
         # directory - single workspace folder structure
         local ws_id=''
@@ -684,6 +704,11 @@ list_workspaces()
             found_ws=1
             show_workspace_status $ETC_DIR/${ws_id}/conf ${ws_id} 0
         done
+        # check scom workspace
+        if [ `ls -1 $ETC_DIR | grep scom | wc -l` -eq 1 ]; then
+            found_ws=1
+            show_workspace_status $ETC_DIR/scom/conf scom 0
+        fi
     fi
 
     if [ $found_ws -eq 0 ]; then
